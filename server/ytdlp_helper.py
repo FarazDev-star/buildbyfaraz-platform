@@ -288,6 +288,53 @@ def format_ytdlp_info(info, current_url, original_url):
 def extract(url):
     resolved_url = resolve_redirects(url)
 
+    # 0. Fast-path for direct media streams (.mp4, .webm, .mov, .mp3, etc.)
+    clean_path = urllib.parse.urlparse(resolved_url).path.lower()
+    if any(clean_path.endswith(ext) for ext in ['.mp4', '.webm', '.mov', '.m4v', '.mp3', '.m4a']):
+        filename = os.path.basename(urllib.parse.urlparse(resolved_url).path) or "direct_media"
+        is_audio = any(clean_path.endswith(ext) for ext in ['.mp3', '.m4a'])
+        filesize = 0
+        try:
+            head_req = urllib.request.Request(resolved_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}, method='HEAD')
+            with urllib.request.urlopen(head_req, timeout=5) as head_resp:
+                cl = head_resp.headers.get('content-length')
+                if cl and cl.isdigit():
+                    filesize = int(cl)
+        except Exception:
+            pass
+
+        return {
+            'success': True,
+            'title': filename,
+            'author': 'Direct Source',
+            'platform': 'Direct Media',
+            'video_id': None,
+            'duration': 'HD Stream',
+            'duration_sec': 0,
+            'thumbnail': None,
+            'thumbnails': [],
+            'preview_stream': resolved_url,
+            'video_formats': [] if is_audio else [{
+                'quality': 'HD Video',
+                'height': 720,
+                'ext': 'mp4',
+                'filesize': format_filesize(filesize),
+                'url': resolved_url,
+                'direct_url': resolved_url,
+                'requires_merge': False,
+                'has_audio': True,
+                'label': 'HD Video • Direct Stream'
+            }],
+            'audio_formats': [{
+                'quality': 'Standard Audio',
+                'abr': 192,
+                'ext': 'mp3',
+                'filesize': format_filesize(filesize) if is_audio else '~',
+                'url': resolved_url
+            }],
+            'original_url': url
+        }
+
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,

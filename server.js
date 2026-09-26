@@ -8,10 +8,36 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT, 10) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 const DIST_DIR = path.resolve(__dirname, 'dist');
 const PYTHON_CMD = process.env.PYTHON_BIN || (process.platform === 'win32' ? 'python' : 'python3');
+const TEMP_DIR = path.resolve(__dirname, '.temp_downloads');
+
+if (!fs.existsSync(TEMP_DIR)) {
+  try { fs.mkdirSync(TEMP_DIR, { recursive: true }); } catch (e) {}
+}
+
+function cleanupTempFiles() {
+  try {
+    if (!fs.existsSync(TEMP_DIR)) return;
+    const now = Date.now();
+    const MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
+    const files = fs.readdirSync(TEMP_DIR);
+    for (const file of files) {
+      const fp = path.join(TEMP_DIR, file);
+      try {
+        const stat = fs.statSync(fp);
+        if (now - stat.mtimeMs > MAX_AGE_MS) {
+          fs.unlinkSync(fp);
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+}
+
+cleanupTempFiles();
+setInterval(cleanupTempFiles, 30 * 60 * 1000).unref();
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -89,9 +115,10 @@ async function proxyUpstream(req, res, targetBase, stripPrefix = '') {
 async function handleVideoDl(req, res, urlObj) {
   try {
     const action = urlObj.searchParams.get('action');
-    const targetUrl = urlObj.searchParams.get('url');
+    const streamUrlParam = urlObj.searchParams.get('stream_url');
+    const targetUrl = urlObj.searchParams.get('url') || streamUrlParam;
 
-    if (!targetUrl) {
+    if (!targetUrl && !streamUrlParam) {
       res.statusCode = 400;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify({ success: false, error: 'No URL provided' }));
@@ -100,7 +127,7 @@ async function handleVideoDl(req, res, urlObj) {
 
     // 1. STREAM PROXY FOR PREVIEW & PLAYBACK
     if (action === 'stream') {
-      const streamUrl = urlObj.searchParams.get('stream_url') || targetUrl;
+      const streamUrl = streamUrlParam || targetUrl;
       try {
         const fetchHeaders = {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -147,7 +174,7 @@ async function handleVideoDl(req, res, urlObj) {
       const type = urlObj.searchParams.get('type') || 'direct';
       const rawFilename = urlObj.searchParams.get('filename') || 'media_download';
       const cleanFilename = rawFilename.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const streamUrl = urlObj.searchParams.get('stream_url');
+      const streamUrl = streamUrlParam;
       const scriptPath = path.resolve(__dirname, 'server', 'ytdlp_helper.py');
 
       // 2A. Instant direct stream
@@ -195,9 +222,17 @@ async function handleVideoDl(req, res, urlObj) {
       // 2B. Video with merged audio (via FFmpeg)
       if (type === 'video') {
         const height = urlObj.searchParams.get('height') || '1080';
-        const py = spawn(PYTHON_CMD, [scriptPath, 'download_video', targetUrl, height]);
+        const py = spawn(PYTHON_CMD, [scriptPath, 'download_video', targetUrl, height], { cwd: __dirname });
         let stdout = '';
         let stderr = '';
+
+        py.on('error', (spawnErr) => {
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, error: `Python execution error: ${spawnErr.message}` }));
+          }
+        });
 
         py.stdout.on('data', (d) => stdout += d.toString());
         py.stderr.on('data', (d) => stderr += d.toString());
@@ -248,9 +283,17 @@ async function handleVideoDl(req, res, urlObj) {
       // 2C. Audio extraction (High-Bitrate MP3)
       if (type === 'audio') {
         const abr = urlObj.searchParams.get('abr') || '192';
-        const py = spawn(PYTHON_CMD, [scriptPath, 'download_audio', targetUrl, abr]);
+        const py = spawn(PYTHON_CMD, [scriptPath, 'download_audio', targetUrl, abr], { cwd: __dirname });
         let stdout = '';
         let stderr = '';
+
+        py.on('error', (spawnErr) => {
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify({ success: false, error: `Python execution error: ${spawnErr.message}` }));
+          }
+        });
 
         py.stdout.on('data', (d) => stdout += d.toString());
         py.stderr.on('data', (d) => stderr += d.toString());
@@ -301,9 +344,18 @@ async function handleVideoDl(req, res, urlObj) {
 
     // 3. MEDIA EXTRACTION ENGINE (yt-dlp)
     const scriptPath = path.resolve(__dirname, 'server', 'ytdlp_helper.py');
-    const py = spawn(PYTHON_CMD, [scriptPath, 'extract', targetUrl]);
+    const py = spawn(PYTHON_CMD, [scriptPath, 'extract', targetUrl], { cwd: __dirname });
     let stdout = '';
     let stderr = '';
+
+    py.on('error', (spawnErr) => {
+      if (!res.headersSent) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.end(JSON.stringify({ success: false, error: `Python execution error: ${spawnErr.message}` }));
+      }
+    });
 
     py.stdout.on('data', (d) => stdout += d.toString());
     py.stderr.on('data', (d) => stderr += d.toString());
@@ -343,9 +395,27 @@ function handleTts(req, res, urlObj) {
     const volume = '+0%';
 
     const scriptPath = path.resolve(__dirname, 'server', 'tts_helper.py');
-    const py = spawn(PYTHON_CMD, [scriptPath, text, voice, formattedRate, formattedPitch, volume]);
+    const py = spawn(PYTHON_CMD, [scriptPath, '--json'], { cwd: __dirname });
     let stdout = '';
     let stderr = '';
+
+    py.on('error', (spawnErr) => {
+      if (!res.headersSent) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.end(JSON.stringify({ success: false, error: `Python execution error: ${spawnErr.message}` }));
+      }
+    });
+
+    py.stdin.write(JSON.stringify({
+      text,
+      voice,
+      rate: formattedRate,
+      pitch: formattedPitch,
+      volume
+    }));
+    py.stdin.end();
 
     py.stdout.on('data', (d) => stdout += d.toString());
     py.stderr.on('data', (d) => stderr += d.toString());
@@ -363,13 +433,13 @@ function handleTts(req, res, urlObj) {
           res.end(buf);
         } else {
           res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.end(JSON.stringify({ success: false, error: parsed.error || stderr }));
         }
       } catch (e) {
         res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.end(JSON.stringify({ success: false, error: stderr || stdout || e.message }));
       }
@@ -395,7 +465,7 @@ function handleTts(req, res, urlObj) {
         return runTts(text, voice, data.rate, data.pitch);
       } catch (err) {
         res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify({ success: false, error: err.message }));
       }
     });
@@ -442,6 +512,11 @@ const server = http.createServer(async (req, res) => {
     return handleTts(req, res, urlObj);
   }
 
+  // Proxy: AllDL fallback video extraction
+  if (pathname.startsWith('/api/alldl')) {
+    return proxyUpstream(req, res, 'https://ahm7xmakki.com');
+  }
+
   // Proxy: WebSnap screenshot engine
   if (pathname.startsWith('/api/websnap')) {
     return proxyUpstream(req, res, 'https://ahm7xmakki.com');
@@ -462,9 +537,25 @@ const server = http.createServer(async (req, res) => {
     return proxyUpstream(req, res, 'https://public-platform.r2.fish.audio', '/fish-cdn');
   }
 
+  // Unhandled API routes return JSON 404
+  if (pathname.startsWith('/api/')) {
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.end(JSON.stringify({ success: false, error: 'API endpoint not found' }));
+    return;
+  }
+
   // Static files & SPA Fallback (Safe directory traversal prevention)
-  const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
-  let filePath = path.join(DIST_DIR, safePath);
+  const resolvedPath = path.resolve(DIST_DIR, '.' + path.normalize(pathname));
+  if (!resolvedPath.startsWith(DIST_DIR)) {
+    res.statusCode = 403;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('403 Forbidden');
+    return;
+  }
+
+  let filePath = resolvedPath;
 
   // If path points to an existing directory, check if it has index.html (e.g., /typingfast/)
   if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
@@ -474,11 +565,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // If file doesn't exist or is a directory without index.html, fallback to root index.html (SPA routing)
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(DIST_DIR, 'index.html');
-  }
-
+  // If file exists and is a file, serve it directly
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
@@ -490,8 +577,27 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // If request has a file extension (e.g. missing .js, .css, .png, .wasm), return 404 Not Found
+  if (path.extname(pathname)) {
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('404 Not Found');
+    return;
+  }
+
+  // SPA navigation fallback to dist/index.html
+  const rootIndex = path.join(DIST_DIR, 'index.html');
+  if (fs.existsSync(rootIndex) && fs.statSync(rootIndex).isFile()) {
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-cache'
+    });
+    fs.createReadStream(rootIndex).pipe(res);
+    return;
+  }
+
   res.statusCode = 404;
-  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.end('404 Not Found');
 });
 
@@ -503,3 +609,20 @@ server.listen(PORT, HOST, () => {
   console.log(`📁 Static Assets: ${DIST_DIR}`);
   console.log(`========================================\n`);
 });
+
+// Graceful shutdown on container stop signals
+function gracefulShutdown(signal) {
+  console.log(`\n🛑 ${signal} received. Closing HTTP server gracefully...`);
+  server.close(() => {
+    console.log('HTTP server closed cleanly. Exiting.');
+    process.exit(0);
+  });
+  setTimeout(() => {
+    console.error('Forced exit after 5s timeout.');
+    process.exit(1);
+  }, 5000).unref();
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+

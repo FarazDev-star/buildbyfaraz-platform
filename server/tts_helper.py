@@ -122,17 +122,51 @@ async def synthesize(text, voice_name, rate="+0%", pitch="+0Hz", volume="+0%"):
     return audio_data
 
 async def main():
-    if len(sys.argv) < 3:
-        print(json.dumps({"success": False, "error": "Missing text or voice parameter"}))
+    text = None
+    raw_voice = "en-US-AndrewMultilingualNeural"
+    rate_val = "+0%"
+    pitch_val = "+0Hz"
+    volume = "+0%"
+
+    if len(sys.argv) > 1 and sys.argv[1] == '--json':
+        try:
+            stdin_data = sys.stdin.read()
+            payload = json.loads(stdin_data) if stdin_data else {}
+            text = payload.get('text')
+            raw_voice = payload.get('voice') or raw_voice
+            rate_val = payload.get('rate') or rate_val
+            pitch_val = payload.get('pitch') or pitch_val
+        except Exception as err:
+            print(json.dumps({"success": False, "error": f"Invalid JSON stdin: {err}"}))
+            sys.exit(1)
+    elif len(sys.argv) >= 3:
+        text = sys.argv[1]
+        raw_voice = sys.argv[2]
+        rate_val = sys.argv[3] if len(sys.argv) > 3 else "+0%"
+        pitch_val = sys.argv[4] if len(sys.argv) > 4 else "+0Hz"
+    elif len(sys.argv) == 2:
+        text = sys.argv[1]
+    else:
+        # Check if piped stdin without --json flag
+        if not sys.stdin.isatty():
+            try:
+                stdin_data = sys.stdin.read()
+                if stdin_data:
+                    payload = json.loads(stdin_data)
+                    text = payload.get('text')
+                    raw_voice = payload.get('voice') or raw_voice
+                    rate_val = payload.get('rate') or rate_val
+                    pitch_val = payload.get('pitch') or pitch_val
+            except Exception:
+                pass
+
+    if not text:
+        print(json.dumps({"success": False, "error": "Missing text parameter"}))
         sys.exit(1)
 
-    text = sys.argv[1]
-    raw_voice = sys.argv[2]
     voice = resolve_voice(raw_voice)
-    
-    rate = format_rate(sys.argv[3] if len(sys.argv) > 3 else "+0%")
-    pitch = format_pitch(sys.argv[4] if len(sys.argv) > 4 else "+0Hz")
-    volume = "+0%"
+    rate = format_rate(rate_val)
+    pitch = format_pitch(pitch_val)
 
     try:
         audio = await synthesize(text, voice, rate, pitch, volume)
