@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>SpeechSter — Ultra Fast Free Text-to-Speech | 580+ Voices | AHM7xMakki</title>
+<meta name="description" content="Free text-to-speech with 580+ natural voices, unlimited text length. Parallel-chunked MP3 generation, adjustable pitch and speed, free REST API."/>
+<meta name="keywords" content="text to speech, tts, free tts, natural voice, mp3 speech, edge tts, speechma, ai voice"/>
+<meta name="robots" content="index, follow"/>
+<meta name="author" content="AHM7xMakki"/>
+<meta name="theme-color" content="#f6f1e5"/>
+<link rel="canonical" href="https://ahm7xmakki.com/speech"/>
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+  <link rel="apple-touch-icon" href="/favicon.png"/>
+  <link rel="shortcut icon" href="/favicon.png"/>
+  <meta property="og:image" content="https://ahm7xmakki.com/favicon.png"/>
+  <meta name="twitter:image" content="https://ahm7xmakki.com/favicon.png"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="SpeechSter — Ultra Fast Text-to-Speech"/>
+<meta property="og:description" content="580+ natural voices, unlimited text length, parallel-chunked MP3. Free API."/>
+<meta property="og:url" content="https://ahm7xmakki.com/speech"/>
+<meta property="og:site_name" content="AHM7xMakki"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"/>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+  {"@type":"WebApplication","name":"SpeechSter — Free Text-to-Speech","url":"https://ahm7xmakki.com/speech","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","description":"Free ultra-fast text-to-speech with 580+ voices, parallel chunk generation, adjustable pitch and speed, free REST API.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},
+  {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://ahm7xmakki.com/"},{"@type":"ListItem","position":2,"name":"Text to Speech","item":"https://ahm7xmakki.com/speech"}]},
+  {"@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"Is SpeechSter free?","acceptedAnswer":{"@type":"Answer","text":"Yes. Unlimited text length, 580+ voices, MP3 download — all completely free, no sign-up, no API key."}},
+    {"@type":"Question","name":"How does the parallel chunking work?","acceptedAnswer":{"@type":"Answer","text":"Long text is split at sentence boundaries into 900-char chunks, all chunks are fetched simultaneously via Promise.all, then merged in the browser as an MP3 Blob."}},
+    {"@type":"Question","name":"Can I adjust pitch and speed?","acceptedAnswer":{"@type":"Answer","text":"Yes. Pitch and speed sliders each range from -100 to +100 and are passed to the /api/tts endpoint."}},
+    {"@type":"Question","name":"Is there a free API?","acceptedAnswer":{"@type":"Answer","text":"Yes. GET /api/voices lists all voices. POST /api/tts synthesizes a chunk and returns raw audio/mpeg. No API key required."}}
+  ]}
+]}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --ink:#141210;--paper:#f6f1e5;--paper2:#efe7d6;--paper3:#e6dcc4;
+  --line:#141210;--line-soft:#d8cdb2;
+  --red:#e0263c;--red-dark:#a91b2c;--red-dim:rgba(224,38,60,0.1);
+  --text:#1b1712;--text2:#4c4636;--text3:#8a8168;--white:#fffdf7;
+  --surface:var(--white);--surface2:var(--paper2);
+  --shadow-sm:3px 3px 0 var(--ink);--shadow-md:5px 5px 0 var(--ink);--shadow-lg:8px 8px 0 var(--ink);
+  --ok:#1f8a4c;--ok-dim:rgba(31,138,76,0.12);
+  --blue:#2e6df2;--blue-dim:rgba(46,109,242,0.12);
+  --warn:#c17817;--warn-dim:rgba(193,120,23,0.14);
+  --font-display:'Bangers',cursive;--font-body:'DM Sans',sans-serif;--font-mono:'DM Mono',monospace;
+  --max:1280px;--r:12px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+[data-theme="dark"]{
+  --ink:#f6f1e5;--paper:#141210;--paper2:#1c1a15;--paper3:#26221a;
+  --line:#f6f1e5;--line-soft:#3a352a;
+  --text:#f2ede1;--text2:#c9c1ac;--text3:#8f8871;--white:#1c1a15;
+  --surface:#1c1a15;--surface2:#26221a;
+  --red:#ff4a5f;--red-dark:#ff7482;--red-dim:rgba(255,74,95,0.14);
+}
+html{scroll-behavior:smooth;overscroll-behavior:none;}
+body{font-family:var(--font-body);background:var(--paper);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .2s,color .2s;}
+::selection{background:var(--red-dim);}
+::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--line-soft);border-radius:5px;}
+.halftone{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;background-image:radial-gradient(var(--ink) 1.1px,transparent 1.3px);background-size:11px 11px;}
+.ink-noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 700px 500px at 8% -5%,var(--red-dim) 0%,transparent 55%),radial-gradient(ellipse 600px 500px at 100% 10%,rgba(20,18,16,0.04) 0%,transparent 55%);}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;display:flex;align-items:center;background:var(--surface);border-bottom:3px solid var(--ink);padding:0 clamp(14px,4vw,50px);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:var(--max);margin:0 auto;gap:10px;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;}
+.logo-badge{width:34px;height:34px;border-radius:8px;background:var(--red);border:2.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1rem;color:var(--white);transform:rotate(-4deg);}
+.logo-name{font-family:var(--font-display);font-size:1.25rem;letter-spacing:.5px;color:var(--text);line-height:1;}
+.logo-name span{color:var(--red);}
+.nav-links{display:flex;gap:4px;align-items:center;}
+.nav-link{font-family:var(--font-body);font-weight:600;font-size:0.8rem;color:var(--text2);text-decoration:none;padding:8px 13px;border-radius:8px;transition:.15s;cursor:pointer;background:none;border:none;}
+.nav-link:hover{color:var(--text);background:var(--paper2);}
+.nav-icon-btn{width:38px;height:38px;border-radius:9px;border:2px solid var(--ink);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:.15s;flex-shrink:0;}
+.nav-icon-btn:hover{background:var(--red-dim);}
+.nav-cta{font-family:var(--font-body);font-size:0.8rem;font-weight:700;color:var(--white);background:var(--red);padding:9px 16px;border-radius:8px;text-decoration:none;margin-left:4px;border:2.5px solid var(--ink);box-shadow:var(--shadow-sm);transition:.12s;cursor:pointer;}
+.nav-cta:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink);}
+@media(max-width:760px){.nav-links .nav-link{display:none;}}
+/* PAGE */
+.page{position:relative;z-index:1;padding-top:64px;max-width:var(--max);margin:0 auto;}
+/* MASTHEAD */
+.masthead{padding:26px clamp(14px,4vw,50px) 20px;}
+.mh-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:16px;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--red-dim);border:2px solid var(--red);padding:5px 14px;border-radius:100px;font-family:var(--font-mono);font-size:0.66rem;font-weight:500;color:var(--red-dark);margin-bottom:10px;}
+.live-dot{width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+h1{font-family:var(--font-display);font-weight:400;letter-spacing:.5px;font-size:clamp(1.8rem,3.6vw,2.7rem);line-height:1;color:var(--text);margin-bottom:6px;}
+h1 em{font-style:normal;color:var(--red);}
+.hero-sub{font-size:0.9rem;color:var(--text2);max-width:540px;line-height:1.6;}
+.badges{display:flex;gap:8px;flex-wrap:wrap;}
+.badge{font-family:var(--font-mono);font-size:0.6rem;padding:4px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--ink);background:var(--surface);white-space:nowrap;}
+/* stats */
+.stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;}
+.stat{background:var(--surface);border:2.5px solid var(--ink);border-radius:12px;padding:10px 16px;box-shadow:var(--shadow-sm);min-width:100px;}
+.stat-val{font-family:var(--font-display);font-size:1.4rem;color:var(--red);line-height:1;}
+.stat-lbl{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px;}
+/* APP GRID */
+.app{padding:8px clamp(14px,4vw,50px) 40px;display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;}
+@media(max-width:920px){.app{grid-template-columns:1fr;}}
+.col-stack{display:flex;flex-direction:column;gap:16px;}
+/* CARD */
+.card{background:var(--surface);border:2.5px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md);}
+.card-hdr{display:flex;align-items:center;gap:9px;padding:14px 18px;background:var(--surface2);border-bottom:2.5px solid var(--ink);}
+.card-hdr svg{color:var(--red);flex-shrink:0;}
+.card-title{font-family:var(--font-body);font-weight:800;font-size:0.85rem;color:var(--text);display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';width:4px;height:16px;background:var(--red);border-radius:2px;}
+.card-body{padding:18px;}
+/* TEXTAREA */
+.ta-wrap{position:relative;}
+textarea{width:100%;min-height:210px;background:var(--surface);border:2.5px solid var(--ink);border-radius:11px;color:var(--text);font-family:var(--font-body);font-size:0.92rem;line-height:1.65;padding:14px;resize:vertical;outline:none;box-shadow:var(--shadow-sm);transition:.15s;}
+textarea:focus{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink);}
+textarea::placeholder{color:var(--text3);}
+.char-ctr{position:absolute;bottom:10px;right:12px;font-family:var(--font-mono);font-size:0.66rem;color:var(--text3);background:var(--surface);border:1.5px solid var(--line-soft);padding:2px 8px;border-radius:5px;pointer-events:none;}
+.char-ctr.warn{color:var(--warn);border-color:var(--warn);}
+.char-ctr.over{color:var(--red);border-color:var(--red);}
+/* Params */
+.audio-params{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:560px){.audio-params{grid-template-columns:1fr;}}
+.param-control{background:var(--surface2);border:2px solid var(--ink);border-radius:11px;padding:12px 14px;}
+.param-label{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.66rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;gap:6px;}
+.param-label>span:first-child{display:flex;align-items:center;gap:6px;color:var(--text2);font-weight:600;}
+.param-value{color:var(--red-dark);font-weight:700;background:var(--red-dim);border:1.5px solid var(--red);padding:2px 8px;border-radius:5px;font-family:var(--font-mono);font-size:0.68rem;}
+.param-reset{background:var(--surface);border:1.5px solid var(--ink);padding:3px 8px;border-radius:5px;font-family:var(--font-mono);font-size:0.6rem;font-weight:600;cursor:pointer;color:var(--text2);transition:.12s;}
+.param-reset:hover{background:var(--red);color:var(--white);border-color:var(--red);}
+input[type="range"]{width:100%;height:4px;border-radius:3px;background:var(--line-soft);-webkit-appearance:none;appearance:none;margin:4px 0;}
+input[type="range"]:focus{outline:none;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--red);border:2px solid var(--ink);cursor:pointer;transition:transform .1s;}
+input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+input[type="range"]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--red);border:2px solid var(--ink);cursor:pointer;}
+.param-scale{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.55rem;color:var(--text3);margin-top:4px;text-transform:uppercase;}
+/* Selected voice display */
+.sel-disp{display:flex;align-items:center;gap:8px;background:var(--surface2);border:2px dashed var(--red);border-radius:10px;padding:11px 14px;margin-bottom:14px;font-family:var(--font-mono);font-size:0.78rem;color:var(--red-dark);min-height:44px;font-weight:500;}
+.sel-disp.empty{color:var(--text3);border-color:var(--line-soft);border-style:dashed;}
+/* Generate button */
+.abtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border:2.5px solid var(--ink);border-radius:11px;font-family:var(--font-body);font-size:0.9rem;font-weight:800;cursor:pointer;transition:.12s;box-shadow:var(--shadow-sm);text-decoration:none;background:var(--surface);color:var(--text);}
+.abtn:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink);}
+.abtn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:var(--shadow-sm);}
+.abtn.primary{background:var(--red);color:var(--white);}
+.abtn.ghost{background:var(--surface);}
+.abtn svg{width:15px;height:15px;}
+.btn-full{width:100%;}
+/* Chunk pips */
+.chunk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:5px;margin-top:14px;}
+.chunk-pip{height:6px;border-radius:3px;background:var(--line-soft);border:1px solid var(--ink);transition:all .25s;}
+.chunk-pip.active{background:var(--warn);animation:shimmer 1s ease-in-out infinite;}
+.chunk-pip.done{background:var(--ok);animation:none;}
+.chunk-pip.error{background:var(--red);}
+@keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.45}}
+/* Progress */
+.prog-wrap{margin-top:14px;display:none;}
+.prog-wrap.show{display:block;}
+.prog-bar{height:8px;border-radius:5px;background:var(--surface2);border:2px solid var(--ink);overflow:hidden;margin-bottom:8px;}
+.prog-fill{height:100%;background:var(--red);transition:width .25s ease;}
+.prog-txt{font-family:var(--font-mono);font-size:0.7rem;color:var(--text2);text-align:center;}
+/* Result */
+.res-wrap{margin-top:14px;display:none;}
+.res-wrap.show{display:block;animation:su .3s ease;}
+@keyframes su{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.res-box{background:var(--surface2);border:2.5px solid var(--ink);border-radius:12px;padding:14px;}
+.res-lbl{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ok);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.res-lbl .d{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite;}
+audio{width:100%;height:40px;border-radius:8px;margin-bottom:10px;}
+.res-toast{font-family:var(--font-mono);font-size:0.72rem;padding:8px 12px;border-radius:8px;margin-top:10px;text-align:center;display:none;border:2px solid;}
+.res-toast.err{background:var(--red-dim);border-color:var(--red);color:var(--red-dark);}
+.res-toast.ok{background:var(--ok-dim);border-color:var(--ok);color:var(--ok);}
+/* Voice library */
+.vsearch{width:100%;background:var(--surface);border:2.5px solid var(--ink);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:0.86rem;padding:10px 14px;outline:none;margin-bottom:10px;box-shadow:var(--shadow-sm);transition:.15s;}
+.vsearch:focus{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink);}
+.vsearch::placeholder{color:var(--text3);}
+.vlist{max-height:520px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding-right:3px;}
+.vgrp{font-family:var(--font-mono);font-size:0.6rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--red);padding:10px 6px 4px;margin-top:6px;border-bottom:1.5px solid var(--line-soft);}
+.vitem{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;border:2px solid transparent;cursor:pointer;transition:.12s;}
+.vitem:hover{background:var(--surface2);border-color:var(--line-soft);}
+.vitem.sel{background:var(--red-dim);border-color:var(--red);}
+.vnum{font-family:var(--font-mono);font-size:0.66rem;font-weight:600;color:var(--text3);width:28px;flex-shrink:0;text-align:right;}
+.vitem.sel .vnum{color:var(--red-dark);}
+.vav{width:34px;height:34px;border-radius:8px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:0.75rem;flex-shrink:0;color:var(--white);transform:rotate(-4deg);}
+.av-m{background:var(--blue);}
+.av-f{background:var(--red);}
+.vinfo{flex:1;min-width:0;}
+.vname{font-family:var(--font-body);font-size:0.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vmeta{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);margin-top:2px;}
+.vchk{color:var(--ok);font-size:0.9rem;font-weight:700;flex-shrink:0;opacity:0;transition:.15s;}
+.vitem.sel .vchk{opacity:1;}
+/* Channels */
+.ch-side{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+.ch-heading{font-family:var(--font-mono);font-size:0.6rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);text-align:center;margin-bottom:4px;}
+.ch-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:2.5px solid var(--ink);border-radius:12px;padding:12px 14px;text-decoration:none;color:var(--text);transition:.12s;box-shadow:var(--shadow-sm);}
+.ch-card:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink);background:var(--red-dim);}
+.ch-av-w{width:38px;height:38px;border-radius:9px;background:var(--red);border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:0.9rem;color:var(--white);flex-shrink:0;transform:rotate(-4deg);}
+.ch-name{font-family:var(--font-body);font-size:0.82rem;font-weight:800;color:var(--text);}
+.ch-sub{font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);margin-top:2px;}
+.ch-follow{font-family:var(--font-body);font-size:0.7rem;font-weight:700;color:var(--red-dark);background:var(--red-dim);border:1.5px solid var(--red);border-radius:6px;padding:4px 10px;flex-shrink:0;}
+/* Toast */
+#toast-wrap{position:fixed;bottom:calc(16px + var(--safe-b));right:16px;z-index:99999;display:flex;flex-direction:column;gap:6px;pointer-events:none;align-items:flex-end;}
+#toast-wrap .toast{font-family:var(--font-body);font-weight:600;font-size:0.74rem;padding:10px 14px;border-radius:9px;animation:tIn .2s ease;max-width:300px;border:2px solid var(--ink);background:var(--surface);color:var(--text);}
+@keyframes tIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+#toast-wrap .toast.ok{color:var(--ok);}
+#toast-wrap .toast.err{color:var(--red);}
+.spin{border-radius:50%;animation:spinAnim .65s linear infinite;display:inline-block;}
+@keyframes spinAnim{to{transform:rotate(360deg)}}
+/* Marketing sections */
+hr{border:none;border-top:2.5px solid var(--line-soft);}
+.sec{padding:60px clamp(14px,4vw,50px);}
+.sec-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--red);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;}
+.sec-title{font-family:var(--font-display);font-weight:400;font-size:clamp(1.9rem,3.4vw,2.7rem);line-height:1.08;color:var(--text);margin-bottom:14px;}
+.sec-sub{font-size:0.92rem;color:var(--text2);max-width:520px;line-height:1.65;margin-bottom:36px;}
+.feat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;padding:34px;background:var(--surface);border:2.5px solid var(--ink);border-radius:16px;}
+@media(max-width:580px){.feat-strip{padding:20px;grid-template-columns:1fr 1fr;}}
+.fi-icon{font-size:1.2rem;margin-bottom:8px;}.fi-title{font-family:var(--font-body);font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:5px;}.fi-desc{font-size:0.76rem;color:var(--text3);line-height:1.55;}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;}
+.step{background:var(--surface);border:2.5px solid var(--ink);border-radius:14px;padding:22px;text-align:center;}
+.step-n{width:32px;height:32px;border-radius:8px;background:var(--red);border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:0.95rem;color:#fff;margin:0 auto 10px;}
+.step-t{font-family:var(--font-body);font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:5px;}.step-d{font-size:0.76rem;color:var(--text3);line-height:1.55;}
+/* API docs section */
+.api-base{background:var(--surface2);border:2.5px solid var(--ink);border-radius:11px;padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;box-shadow:var(--shadow-sm);}
+.api-base-lbl{font-family:var(--font-mono);font-size:0.6rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);flex-shrink:0;}
+.api-base-url{flex:1;font-family:var(--font-mono);font-size:0.82rem;color:var(--red-dark);font-weight:600;word-break:break-all;min-width:200px;}
+.copy-btn{padding:6px 12px;background:var(--red-dim);border:2px solid var(--red);color:var(--red-dark);font-family:var(--font-body);font-weight:700;font-size:0.7rem;border-radius:7px;cursor:pointer;transition:.12s;white-space:nowrap;}
+.copy-btn:hover{background:var(--red);color:var(--white);}
+.ep{background:var(--surface);border:2.5px solid var(--ink);border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+.ep-top{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-bottom:2px solid var(--ink);flex-wrap:wrap;}
+.ep-method{font-family:var(--font-mono);font-size:0.62rem;font-weight:700;padding:3px 9px;border-radius:5px;letter-spacing:0.04em;}
+.ep-method.get{background:var(--ok-dim);color:var(--ok);border:1.5px solid var(--ok);}
+.ep-method.post{background:var(--blue-dim);color:var(--blue);border:1.5px solid var(--blue);}
+.ep-path{font-family:var(--font-mono);font-size:0.85rem;font-weight:700;color:var(--text);}
+.ep-tag{margin-left:auto;font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);}
+.ep-body{padding:14px;display:flex;flex-direction:column;gap:12px;}
+.ep-desc{font-size:0.86rem;color:var(--text2);line-height:1.6;}
+.pt{width:100%;border-collapse:collapse;}
+.pt th{text-align:left;font-family:var(--font-mono);font-size:0.58rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);padding:0 10px 8px;border-bottom:1.5px solid var(--line-soft);}
+.pt td{padding:9px 10px;border-bottom:1.5px solid var(--line-soft);font-size:0.82rem;color:var(--text2);vertical-align:top;}
+.pt tr:last-child td{border-bottom:none;}
+.pn{font-family:var(--font-mono);color:var(--red-dark);font-weight:600;font-size:0.78rem;}
+.ptype{font-family:var(--font-mono);color:var(--text3);font-size:0.72rem;}
+.preq{font-family:var(--font-mono);font-size:0.58rem;padding:2px 7px;border-radius:4px;background:var(--red-dim);color:var(--red-dark);border:1px solid var(--red);}
+.popt{font-family:var(--font-mono);font-size:0.58rem;padding:2px 7px;border-radius:4px;background:var(--ok-dim);color:var(--ok);border:1px solid var(--ok);}
+.code-wrap{position:relative;background:var(--paper2);border:2px solid var(--ink);border-radius:9px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.code-hd{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1.5px solid var(--ink);background:var(--surface2);}
+.code-lbl{font-family:var(--font-mono);font-size:0.6rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;}
+.code-cp{background:var(--surface);border:1.5px solid var(--ink);color:var(--text2);font-family:var(--font-body);font-size:0.66rem;font-weight:700;padding:3px 10px;border-radius:5px;cursor:pointer;transition:.12s;}
+.code-cp:hover{background:var(--red);color:var(--white);border-color:var(--red);}
+.code-cp.ok{background:var(--ok);color:var(--white);border-color:var(--ok);}
+.code-body{padding:12px 14px;font-family:var(--font-mono);font-size:0.74rem;line-height:1.7;color:var(--text);white-space:pre;overflow-x:auto;background:var(--surface);}
+.code-body .k{color:var(--red-dark);font-weight:600;}
+.code-body .s{color:var(--ok);}
+.code-body .n{color:var(--warn);}
+.ep-note{display:flex;gap:8px;align-items:flex-start;background:var(--surface2);border:1.5px solid var(--line-soft);border-radius:9px;padding:10px 12px;font-size:0.78rem;line-height:1.6;color:var(--text3);}
+.ep-note::before{content:'ℹ';flex-shrink:0;color:var(--red);font-size:0.9rem;font-weight:700;}
+.ep-note code{font-family:var(--font-mono);background:var(--surface);padding:1px 6px;border-radius:4px;font-size:0.72rem;border:1px solid var(--line-soft);}
+.err-grid{display:grid;grid-template-columns:auto 1fr;background:var(--surface2);border:2px solid var(--ink);border-radius:9px;overflow:hidden;}
+.ec{padding:9px 13px;font-size:0.82rem;border-bottom:1.5px solid var(--line-soft);}
+.err-grid>.ec:nth-last-child(-n+2){border-bottom:none;}
+.ecode{font-family:var(--font-mono);color:var(--warn);font-weight:600;border-right:1.5px solid var(--line-soft);}
+.emsg{color:var(--text2);}
+/* FAQ */
+.faq{display:flex;flex-direction:column;max-width:720px;}
+details{border-bottom:2px solid var(--line-soft);}
+details:last-child{border-bottom:none;}
+summary{font-family:var(--font-body);font-size:0.86rem;font-weight:700;color:var(--text);padding:16px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;list-style:none;transition:.15s;}
+summary::-webkit-details-marker{display:none;}
+summary:hover{color:var(--red);}
+summary::after{content:'+';color:var(--text3);font-size:1.1rem;flex-shrink:0;}
+details[open] summary::after{content:'×';color:var(--red);}
+.fa{font-size:0.84rem;color:var(--text3);line-height:1.75;padding-bottom:16px;}
+.fa code{font-family:var(--font-mono);background:var(--paper2);padding:2px 6px;border-radius:4px;font-size:0.75rem;}
+/* channels grid */
+.cha-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+.cha-card{background:var(--surface);border:2.5px solid var(--ink);border-radius:16px;padding:22px;transition:.15s;}
+.cha-card:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-sm);}
+.cha-icon{font-size:1.5rem;margin-bottom:10px;}
+.cha-name{font-family:var(--font-body);font-size:0.88rem;font-weight:800;color:var(--text);margin-bottom:7px;}
+.cha-desc{font-size:0.78rem;color:var(--text3);line-height:1.6;margin-bottom:14px;}
+.cha-btn{font-family:var(--font-body);font-size:0.72rem;font-weight:700;padding:8px 14px;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;background:var(--red-dim);color:var(--red-dark);border:1.5px solid var(--red);transition:.15s;}
+.cha-btn:hover{background:var(--red);color:#fff;}
+.legal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;}
+.legal-card{background:var(--surface);border:2.5px solid var(--ink);border-radius:16px;padding:24px;}
+.legal-title{font-family:var(--font-body);font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--line-soft);}
+.legal-text{font-size:0.8rem;color:var(--text3);line-height:1.75;}
+.legal-text a{color:var(--red);text-decoration:none;}
+.rel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:11px;}
+.rel-card{background:var(--surface);border:2px solid var(--ink);border-radius:13px;padding:16px;text-decoration:none;transition:.15s;display:flex;align-items:center;gap:11px;}
+.rel-card:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-sm);}
+.rel-icon{font-size:1.2rem;width:34px;height:34px;background:var(--paper2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rel-name{font-family:var(--font-body);font-size:0.76rem;font-weight:700;color:var(--text);}
+.rel-cat{font-size:0.68rem;color:var(--text3);margin-top:2px;}
+footer{position:relative;z-index:1;border-top:3px solid var(--ink);padding:48px clamp(14px,4vw,50px) 26px;max-width:var(--max);margin:0 auto;}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px;margin-bottom:40px;}
+@media(max-width:768px){.foot-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.foot-grid{grid-template-columns:1fr;}}
+.foot-tagline{font-size:0.8rem;color:var(--text3);line-height:1.6;max-width:230px;margin:10px 0 14px;}
+.foot-contact{display:flex;flex-direction:column;gap:7px;}
+.foot-contact a{font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);text-decoration:none;transition:.15s;}.foot-contact a:hover{color:var(--red);}
+.foot-col-title{font-family:var(--font-body);font-size:0.66rem;font-weight:800;color:var(--text);margin-bottom:12px;letter-spacing:0.06em;text-transform:uppercase;}
+.foot-links{display:flex;flex-direction:column;gap:9px;}
+.foot-links a{font-size:0.8rem;color:var(--text3);text-decoration:none;transition:.15s;}.foot-links a:hover{color:var(--text);}
+.foot-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-top:20px;border-top:2px solid var(--line-soft);}
+.foot-copy{font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);}
+.foot-status{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:0.68rem;color:var(--ok);}
+.st-dot{width:6px;height:6px;background:var(--ok);border-radius:50%;animation:pulse 2s infinite;}
+.foot-legal{display:flex;gap:14px;}
+.foot-legal a{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);text-decoration:none;}.foot-legal a:hover{color:var(--text);}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+img.logo-badge{background:transparent!important;border:none!important;padding:0!important;color:transparent!important;font-size:0!important;object-fit:contain!important;}</style>
+</head>
+<body>
+<div class="halftone"></div>
+<div class="ink-noise"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo"><img class="logo-badge" src="/favicon.png" alt="AHM7 x Makki" width="34" height="34"/><span class="logo-name">Speech<span>Ster</span></span></a>
+    <div class="nav-links">
+      <a href="#app-anchor" class="nav-link">Generate</a>
+      <a href="#api" class="nav-link">API Docs</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+      <button class="nav-icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <a href="#api" class="nav-cta">API Docs →</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- MASTHEAD -->
+  <div class="masthead">
+    <div class="mh-top">
+      <div>
+        <div class="eyebrow"><span class="live-dot"></span>All chunks fire simultaneously · Direct + proxy fallback</div>
+        <h1>Convert text to <em>natural speech.</em></h1>
+        <p class="hero-sub">All chunks fired at once — your browser does the merging. Unlimited text length, 580+ voices, lightning fast, no queue.</p>
+      </div>
+      <div class="badges">
+        <span class="badge">580+ Voices</span>
+        <span class="badge">∞ Length</span>
+        <span class="badge">MP3 Download</span>
+        <span class="badge">Free API</span>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val">580+</div><div class="stat-lbl">Voices</div></div>
+      <div class="stat"><div class="stat-val">∞</div><div class="stat-lbl">Text length</div></div>
+      <div class="stat"><div class="stat-val">∞×</div><div class="stat-lbl">Parallel</div></div>
+      <div class="stat"><div class="stat-val">0</div><div class="stat-lbl">Server ffmpeg</div></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div class="app" id="app-anchor">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-stack">
+
+      <!-- TEXT INPUT -->
+      <div class="card">
+        <div class="card-hdr">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span class="card-title">Your Text</span>
+        </div>
+        <div class="card-body">
+          <div class="ta-wrap">
+            <textarea id="text-input" placeholder="Type or paste any text here — long texts are automatically split into chunks and all chunks are fetched in parallel for maximum speed..." oninput="updateCount()"></textarea>
+            <span class="char-ctr" id="char-ctr">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VOICE EFFECTS -->
+      <div class="card">
+        <div class="card-hdr">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          <span class="card-title">Voice Effects</span>
+        </div>
+        <div class="card-body">
+          <div class="audio-params">
+            <div class="param-control">
+              <div class="param-label">
+                <span>Pitch</span>
+                <span class="param-value" id="pitch-value">0</span>
+                <button class="param-reset" onclick="resetPitch()">Reset</button>
+              </div>
+              <input type="range" id="pitch-slider" min="-100" max="100" value="0" step="1" oninput="updatePitch(this.value)">
+              <div class="param-scale"><span>Deeper</span><span>Normal</span><span>Higher</span></div>
+            </div>
+            <div class="param-control">
+              <div class="param-label">
+                <span>Speed</span>
+                <span class="param-value" id="rate-value">0</span>
+                <button class="param-reset" onclick="resetRate()">Reset</button>
+              </div>
+              <input type="range" id="rate-slider" min="-100" max="100" value="0" step="1" oninput="updateRate(this.value)">
+              <div class="param-scale"><span>Slower</span><span>Normal</span><span>Faster</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GENERATE -->
+      <div class="card">
+        <div class="card-hdr">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span class="card-title">Generate</span>
+        </div>
+        <div class="card-body">
+          <div class="sel-disp empty" id="sel-disp">🎤 No voice selected — pick one from the library →</div>
+          <button class="abtn primary btn-full" id="gen-btn" onclick="generate()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Generate Speech
+          </button>
+          <div class="prog-wrap" id="prog-wrap">
+            <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+            <div class="prog-txt" id="prog-txt">Preparing...</div>
+            <div class="chunk-grid" id="chunk-grid"></div>
+          </div>
+          <div class="res-wrap" id="res-wrap">
+            <div class="res-box">
+              <div class="res-lbl"><span class="d"></span>Ready to play</div>
+              <audio id="audio-player" controls preload="auto"></audio>
+              <a class="abtn ghost btn-full" id="dl-btn" href="#" download="speech.mp3" style="margin-top:4px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download MP3
+              </a>
+            </div>
+            <div id="toast" class="res-toast"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHANNELS -->
+      <div class="ch-side">
+        <div class="ch-heading">Follow our WhatsApp channels</div>
+        <a href="https://whatsapp.com/channel/0029Vb901QrFy724Izy9Wn0m" target="_blank" rel="noopener" class="ch-card">
+          <div class="ch-av-w">MM</div>
+          <div style="flex:1;min-width:0;">
+            <div class="ch-name">Muhammad Makki</div>
+            <div class="ch-sub">WhatsApp Channel</div>
+          </div>
+          <div class="ch-follow">Follow</div>
+        </a>
+        <a href="https://www.whatsapp.com/channel/0029VaOqbIr2P59sgcIri51d" target="_blank" rel="noopener" class="ch-card">
+          <div class="ch-av-w">AT</div>
+          <div style="flex:1;min-width:0;">
+            <div class="ch-name">Ahm7Tech</div>
+            <div class="ch-sub">WhatsApp Channel</div>
+          </div>
+          <div class="ch-follow">Follow</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- RIGHT: VOICE LIBRARY -->
+    <div class="card">
+      <div class="card-hdr">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span class="card-title">Voice Library</span>
+      </div>
+      <div class="card-body">
+        <input class="vsearch" id="vsearch" type="text" placeholder="🔍  Search voices, language, country..." oninput="filterVoices()"/>
+        <div class="vlist" id="vlist">
+          <div style="text-align:center;padding:2rem;color:var(--text3);font-family:var(--font-mono);font-size:0.75rem;">Loading voices...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr/>
+
+  <!-- FEATURES -->
+  <div class="sec">
+    <div class="sec-label">Why SpeechSter</div>
+    <h2 class="sec-title">Fastest text-to-speech<br/>on the internet.</h2>
+    <div class="feat-strip">
+      <div><div class="fi-icon">⚡</div><div class="fi-title">True Parallel</div><div class="fi-desc">Every chunk fires at the same instant via Promise.all — no queue, no waiting.</div></div>
+      <div><div class="fi-icon">🎙️</div><div class="fi-title">580+ Voices</div><div class="fi-desc">Multilingual, English, and dozens of regional voices for every language.</div></div>
+      <div><div class="fi-icon">🎛️</div><div class="fi-title">Pitch &amp; Speed</div><div class="fi-desc">Fine-tune each voice from -100 to +100 for pitch and speaking rate.</div></div>
+      <div><div class="fi-icon">∞</div><div class="fi-title">Unlimited Length</div><div class="fi-desc">Auto-split at sentence boundaries; browser merges MP3 Blobs client-side.</div></div>
+      <div><div class="fi-icon">📥</div><div class="fi-title">MP3 Download</div><div class="fi-desc">One click and your speech is a shareable MP3 file — clean and portable.</div></div>
+      <div><div class="fi-icon">🔧</div><div class="fi-title">Free REST API</div><div class="fi-desc">GET <code>/api/voices</code> · POST <code>/api/tts</code>. No API key required.</div></div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- HOW IT WORKS -->
+  <div class="sec">
+    <div class="sec-label">How It Works</div>
+    <h2 class="sec-title">Text in.<br/>MP3 out.</h2>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-t">Paste Text</div><div class="step-d">Drop in any text, from a sentence to a whole novel.</div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-t">Pick Voice</div><div class="step-d">Browse 580+ voices grouped by language.</div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-t">Tune Effects</div><div class="step-d">Optional pitch and speed sliders.</div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-t">Download MP3</div><div class="step-d">Play in-page or grab the merged MP3 file.</div></div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- API DOCS -->
+  <div class="sec" id="api">
+    <div class="sec-label">Developers</div>
+    <h2 class="sec-title">Free REST API.<br/>Two endpoints.</h2>
+    <p class="sec-sub">Zero auth. <strong>GET /api/voices</strong> returns the voice list. <strong>POST /api/tts</strong> synthesizes one chunk of text (max 1950 chars) and returns raw <code>audio/mpeg</code> bytes. For long text, split client-side, fire all chunks with <code>Promise.all()</code>, and concatenate the Blobs.</p>
+
+    <div class="api-base">
+      <span class="api-base-lbl">Base URL</span>
+      <code class="api-base-url" id="api-base-url"></code>
+      <button class="copy-btn" onclick="copyBaseUrl(this)">Copy</button>
+    </div>
+
+    <!-- GET /api/voices -->
+    <div class="ep">
+      <div class="ep-top">
+        <span class="ep-method get">GET</span>
+        <code class="ep-path">/api/voices</code>
+        <span class="ep-tag">json</span>
+      </div>
+      <div class="ep-body">
+        <p class="ep-desc">Returns all available voices with 1-based index numbers, grouped by language. Use the returned <code>index</code> in TTS calls.</p>
+        <div class="code-wrap">
+          <div class="code-hd"><span class="code-lbl">Response</span><button class="code-cp" onclick="copyCode(this)">Copy</button></div>
+<pre class="code-body">{
+  <span class="k">"success"</span>: <span class="n">true</span>,
+  <span class="k">"total"</span>: <span class="n">580</span>,
+  <span class="k">"voices"</span>: [
+    { <span class="k">"index"</span>: <span class="n">1</span>, <span class="k">"id"</span>: <span class="s">"voice-107"</span>,
+      <span class="k">"name"</span>: <span class="s">"Andrew Multilingual"</span>,
+      <span class="k">"gender"</span>: <span class="s">"Male"</span>,
+      <span class="k">"language"</span>: <span class="s">"Multilingual"</span>,
+      <span class="k">"country"</span>: <span class="s">"United States"</span> }
+  ],
+  <span class="k">"grouped"</span>: { <span class="k">"Multilingual"</span>: [...], <span class="k">"English"</span>: [...] }
+}</pre>
+        </div>
+        <div class="code-wrap">
+          <div class="code-hd"><span class="code-lbl">cURL</span><button class="code-cp" onclick="copyCode(this)">Copy</button></div>
+<pre class="code-body" id="voices-curl">curl <span class="s">"__BASE__/api/voices"</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- POST /api/tts -->
+    <div class="ep">
+      <div class="ep-top">
+        <span class="ep-method post">POST</span>
+        <code class="ep-path">/api/tts</code>
+        <span class="ep-tag">audio/mpeg</span>
+      </div>
+      <div class="ep-body">
+        <p class="ep-desc">Synthesizes one chunk of text and returns raw <code>audio/mpeg</code> binary. Max 1950 chars per call. Response headers include <code>X-Pitch</code>, <code>X-Rate</code>, <code>X-Voice-Name</code>, <code>X-Char-Count</code>.</p>
+        <table class="pt"><thead><tr><th>Param</th><th>Type</th><th></th><th>Description</th></tr></thead><tbody>
+          <tr><td class="pn">voiceIndex</td><td class="ptype">number</td><td><span class="preq">required</span></td><td>1-based index from <code>/api/voices</code></td></tr>
+          <tr><td class="pn">text</td><td class="ptype">string</td><td><span class="preq">required</span></td><td>Text to synthesize (max 1950 chars per call)</td></tr>
+          <tr><td class="pn">pitch</td><td class="ptype">number</td><td><span class="popt">optional</span></td><td>-100 (deeper) to 100 (higher). Default 0.</td></tr>
+          <tr><td class="pn">rate</td><td class="ptype">number</td><td><span class="popt">optional</span></td><td>-100 (slower) to 100 (faster). Default 0.</td></tr>
+        </tbody></table>
+        <div class="code-wrap">
+          <div class="code-hd"><span class="code-lbl">cURL</span><button class="code-cp" onclick="copyCode(this)">Copy</button></div>
+<pre class="code-body" id="tts-curl">curl -X POST <span class="s">"__BASE__/api/tts"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"voiceIndex":1,"text":"Hello, world!","pitch":10,"rate":-5}'</span> \
+  --output speech.mp3</pre>
+        </div>
+        <div class="code-wrap">
+          <div class="code-hd"><span class="code-lbl">JavaScript — parallel chunks</span><button class="code-cp" onclick="copyCode(this)">Copy</button></div>
+<pre class="code-body">// 1. Split text at sentence boundaries into <=1950-char chunks
+<span class="k">const</span> chunks = splitText(text, <span class="n">1950</span>);
+
+// 2. Fire ALL chunks simultaneously — no queue
+<span class="k">const</span> blobs = <span class="k">await</span> Promise.all(
+  chunks.map(chunk =>
+    fetch(<span class="s">'/api/tts'</span>, {
+      method: <span class="s">'POST'</span>,
+      headers: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span> },
+      body: JSON.stringify({ voiceIndex, text: chunk, pitch, rate })
+    }).then(r => r.blob())
+  )
+);
+
+// 3. Concat Blobs — MP3 is a stream, this just works
+<span class="k">const</span> merged = <span class="k">new</span> Blob(blobs, { type: <span class="s">'audio/mpeg'</span> });
+<span class="k">const</span> url = URL.createObjectURL(merged);</pre>
+        </div>
+        <div class="ep-note">POST endpoints can't be tested by opening a URL. Paste the cURL above into your terminal or call it with <code>fetch()</code> in code.</div>
+      </div>
+    </div>
+
+    <!-- errors -->
+    <div class="ep">
+      <div class="ep-top">
+        <span class="ep-method get" style="background:var(--warn-dim);color:var(--warn);border-color:var(--warn);">ERRORS</span>
+        <code class="ep-path">HTTP status codes</code>
+      </div>
+      <div class="ep-body">
+        <div class="err-grid">
+          <div class="ec ecode">400</div><div class="ec emsg">Missing or invalid parameter (invalid pitch/rate range, missing text, etc.)</div>
+          <div class="ec ecode">405</div><div class="ec emsg">Method not allowed — use GET on <code>/api/voices</code>, POST on <code>/api/tts</code></div>
+          <div class="ec ecode">502</div><div class="ec emsg">TTS provider error — retry</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- FAQ -->
+  <div class="sec" id="faq">
+    <div class="sec-label">FAQ</div>
+    <h2 class="sec-title">Frequently asked<br/>questions.</h2>
+    <div class="faq">
+      <details><summary>Is SpeechSter really free?</summary><p class="fa">Yes — 100% free with no sign-up, no API key, no usage limits. 580+ voices, unlimited text length, MP3 download included.</p></details>
+      <details><summary>How does unlimited text length work?</summary><p class="fa">Your text is split at sentence boundaries into ~900-char chunks. All chunks are fetched in parallel via <code>Promise.all()</code>, then the resulting MP3 Blobs are concatenated in the browser — MP3 is a stream format, so pure Blob concat works.</p></details>
+      <details><summary>What does "direct + proxy fallback" mean?</summary><p class="fa">The UI first tries to call the upstream TTS provider directly from the browser (fastest path). If CORS blocks it, it automatically falls back to our own <code>/api/tts</code> proxy endpoint. You always get audio.</p></details>
+      <details><summary>Can I adjust pitch and speed?</summary><p class="fa">Yes. Both sliders range from -100 to +100 and are passed to <code>/api/tts</code> as the <code>pitch</code> and <code>rate</code> parameters.</p></details>
+      <details><summary>Is there an API?</summary><p class="fa">Yes. Two endpoints: <code>GET /api/voices</code> and <code>POST /api/tts</code>. No auth. See the API section above for the full docs.</p></details>
+      <details><summary>What audio format is returned?</summary><p class="fa">Raw MP3 (<code>audio/mpeg</code>) binary. Max 1950 chars per single call; the client handles chunking + merging.</p></details>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- COMMUNITY -->
+  <div class="sec">
+    <div class="sec-label">Community</div>
+    <h2 class="sec-title">Follow our<br/>WhatsApp channels.</h2>
+    <p class="sec-sub">New tools, updates, and exclusive resources delivered to WhatsApp.</p>
+    <div class="cha-grid">
+      <div class="cha-card"><div class="cha-icon">💎</div><div class="cha-name">Muhammad Makki</div><div class="cha-desc">Premium tools, exclusive content and latest resources.</div><a href="https://whatsapp.com/channel/0029Vb901QrFy724Izy9Wn0m" target="_blank" rel="noopener" class="cha-btn">💎 Join Channel →</a></div>
+      <div class="cha-card"><div class="cha-icon">🔧</div><div class="cha-name">Ahm7Tech</div><div class="cha-desc">Technical updates, dev tools and tech news daily.</div><a href="https://www.whatsapp.com/channel/0029VaOqbIr2P59sgcIri51d" target="_blank" rel="noopener" class="cha-btn">🔧 Join Channel →</a></div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- LEGAL -->
+  <div class="sec">
+    <div class="sec-label">Platform</div>
+    <h2 class="sec-title">About · Privacy · Terms.</h2>
+    <div class="legal-grid">
+      <div class="legal-card"><div class="legal-title">About SpeechSter</div><p class="legal-text">SpeechSter is a free text-to-speech tool by AHM7xMakki — part of a 16-tool free API platform. Owned by AHM7. Built and managed by Makki. <a href="/about">About us →</a></p></div>
+      <div class="legal-card"><div class="legal-title">Privacy Policy</div><p class="legal-text">Your text is streamed to the TTS provider and returned as MP3. We don't retain text or generated audio. <a href="/privacy">Full policy →</a></p></div>
+      <div class="legal-card"><div class="legal-title">Terms of Use</div><p class="legal-text">For personal and non-commercial use. Don't use it for impersonation, deceptive content, or unlawful activity. <a href="/terms">Full terms →</a></p></div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- RELATED -->
+  <div class="sec">
+    <div class="sec-label">More Free Tools</div>
+    <h2 class="sec-title">More APIs.</h2>
+    <div class="rel-grid">
+      <a href="/manga"     class="rel-card"><div class="rel-icon">📖</div><div><div class="rel-name">Manga API</div><div class="rel-cat">Read manga free</div></div></a>
+      <a href="/novel"     class="rel-card"><div class="rel-icon">📚</div><div><div class="rel-name">Novel API</div><div class="rel-cat">English novels</div></div></a>
+      <a href="/tempmail"  class="rel-card"><div class="rel-icon">✉️</div><div><div class="rel-name">Temp Mail</div><div class="rel-cat">Disposable inbox</div></div></a>
+      <a href="/pixelster" class="rel-card"><div class="rel-icon">🎨</div><div><div class="rel-name">AI Image Gen</div><div class="rel-cat">Bulk free</div></div></a>
+      <a href="/imgchat"   class="rel-card"><div class="rel-icon">👁️</div><div><div class="rel-name">AI Vision</div><div class="rel-cat">Ask any image</div></div></a>
+      <a href="/"          class="rel-card"><div class="rel-icon">⚡</div><div><div class="rel-name">All 16 Tools</div><div class="rel-cat">Browse everything</div></div></a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <a href="/" class="logo" style="display:inline-flex;margin-bottom:4px;"><img class="logo-badge" src="/favicon.png" alt="AHM7 x Makki" width="34" height="34"/><span class="logo-name" style="margin-left:10px;">Speech<span>Ster</span></span></a>
+      <p class="foot-tagline">Free REST APIs for developers. No auth, no limits, full docs.</p>
+      <div class="foot-contact">
+        <a href="https://wa.me/923257607934" target="_blank" rel="noopener">📱 WhatsApp — Makki</a>
+        <a href="https://whatsapp.com/channel/0029VaOqbIr2P59sgcIri51d" target="_blank" rel="noopener">📢 Ahm7Tech Channel</a>
+        <a href="mailto:contact@ahm7xmakki.com">✉️ contact@ahm7xmakki.com</a>
+      </div>
+    </div>
+    <div><div class="foot-col-title">APIs</div><div class="foot-links"><a href="/websnap">Screenshot API</a><a href="/speech">Text-to-Speech API</a><a href="/alldl">Video Downloader API</a><a href="/imgchat">AI Vision API</a><a href="/tempmail">Temp Email API</a><a href="/pixelster">Image Generator API</a></div></div>
+    <div><div class="foot-col-title">More APIs</div><div class="foot-links"><a href="/manga">Manga API</a><a href="/novel">Novel API</a><a href="/unovel">Urdu Novel API</a><a href="/movies">Movies API</a><a href="/medster">Medicine API</a><a href="/wikipdf">Wikipedia PDF API</a></div></div>
+    <div><div class="foot-col-title">Platform</div><div class="foot-links"><a href="/about">About</a><a href="/contact">Contact</a><a href="/docs">Documentation</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/changelog">Changelog</a></div></div>
+  </div>
+  <div class="foot-bottom">
+    <span class="foot-copy">© 2026 AHM7xMakki. All rights reserved.</span>
+    <div class="foot-status"><span class="st-dot"></span>All systems operational</div>
+    <div class="foot-legal"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/sitemap.xml">Sitemap</a></div>
+  </div>
+</footer>
+
+<div id="toast-wrap"></div>
+
+<div class="sr-only">
+  <h2>Free Text to Speech</h2><h2>Ultra Fast TTS</h2>
+  <p>SpeechSter by AHM7xMakki is a free ultra-fast text-to-speech converter with 580+ natural voices, adjustable pitch and speed, unlimited text length, MP3 download and a free REST API.</p>
+</div>
+
+<script>
+/* ── Theme toggle ── */
+(function(){
+  const KEY='ahm7-theme';
+  let cur=localStorage.getItem(KEY)||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  applyTheme(cur);
+  function applyTheme(t){
+    if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+    else document.documentElement.removeAttribute('data-theme');
+    const b=document.getElementById('theme-toggle');
+    if(b) b.textContent=t==='dark'?'☀️':'🌙';
+  }
+  window.toggleTheme=function(){
+    cur=cur==='dark'?'light':'dark';
+    localStorage.setItem(KEY,cur);
+    applyTheme(cur);
+  };
+})();
+
+/* ── Toast ── */
+function showTop(msg,type){
+  const w=document.getElementById('toast-wrap');
+  const el=document.createElement('div');
+  el.className='toast '+(type||'');
+  el.textContent=msg;
+  w.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},3200);
+}
+
+/* ── API constants ── */
+const BASE = window.location.origin;
+const SPEECHMA = 'https://speechma.com/com.api/tts-api.php';
+const MAX_CHUNK = 900;
+
+let pitchValue = 0;
+let rateValue = 0;
+
+function updatePitch(val) {
+  pitchValue = parseInt(val);
+  document.getElementById('pitch-value').textContent = pitchValue;
+  document.getElementById('pitch-slider').value = pitchValue;
+}
+function updateRate(val) {
+  rateValue = parseInt(val);
+  document.getElementById('rate-value').textContent = rateValue;
+  document.getElementById('rate-slider').value = rateValue;
+}
+function resetPitch() { updatePitch(0); }
+function resetRate() { updateRate(0); }
+
+let voices = [], selectedVoice = null, audioURL = null;
+
+async function loadVoices() {
+  try {
+    const r = await fetch(BASE + '/api/voices');
+    const d = await r.json();
+    voices = d.voices || [];
+    renderVoices(voices);
+  } catch(e) {
+    document.getElementById('vlist').innerHTML =
+      '<div style="text-align:center;padding:2rem;color:var(--red);font-family:var(--font-mono);font-size:0.75rem;">Failed to load voices</div>';
+  }
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderVoices(list) {
+  const c = document.getElementById('vlist');
+  if (!list.length) {
+    c.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-family:var(--font-mono);font-size:0.75rem;">No voices found</div>';
+    return;
+  }
+  const grp = {};
+  list.forEach(v => { if (!grp[v.language]) grp[v.language]=[]; grp[v.language].push(v); });
+  let h = '';
+  for (const [lang, vs] of Object.entries(grp)) {
+    h += '<div class="vgrp">'+esc(lang)+'</div>';
+    vs.forEach(v => {
+      const s = selectedVoice && selectedVoice.index===v.index;
+      const av = v.gender==='Male' ? 'av-m' : 'av-f';
+      const in2 = v.name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      h += '<div class="vitem'+(s?' sel':'')+'" onclick="selectVoice('+v.index+')">'+
+        '<span class="vnum">'+v.index+'</span>'+
+        '<div class="vav '+av+'">'+esc(in2)+'</div>'+
+        '<div class="vinfo"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+esc(v.gender)+' · '+esc(v.country)+'</div></div>'+
+        '<span class="vchk">✓</span></div>';
+    });
+  }
+  c.innerHTML = h;
+}
+
+function filterVoices() {
+  const q = document.getElementById('vsearch').value.toLowerCase();
+  renderVoices(voices.filter(v =>
+    v.name.toLowerCase().includes(q) || v.language.toLowerCase().includes(q) ||
+    v.country.toLowerCase().includes(q) || String(v.index).includes(q)));
+}
+
+function selectVoice(idx) {
+  selectedVoice = voices.find(v => v.index===idx);
+  const d = document.getElementById('sel-disp');
+  if (selectedVoice) {
+    d.className = 'sel-disp';
+    d.textContent = '🎤 #'+selectedVoice.index+' · '+selectedVoice.name+' · '+selectedVoice.gender+' · '+selectedVoice.country;
+  } else {
+    d.className = 'sel-disp empty';
+    d.textContent = '🎤 No voice selected';
+  }
+  const q = document.getElementById('vsearch').value.toLowerCase();
+  renderVoices(q ? voices.filter(v=>v.name.toLowerCase().includes(q)||v.language.toLowerCase().includes(q)||v.country.toLowerCase().includes(q)||String(v.index).includes(q)) : voices);
+}
+
+function updateCount() {
+  const n = document.getElementById('text-input').value.length;
+  const el = document.getElementById('char-ctr');
+  el.textContent = n.toLocaleString();
+  el.className = 'char-ctr'+(n>10000?' over':n>6000?' warn':'');
+}
+
+function splitText(text, max) {
+  const chunks = [];
+  let rem = text.replace(/[*_`~><^#|\\]/g,'').replace(/\s+/g,' ').trim();
+  while (rem.length > 0) {
+    if (rem.length <= max) { chunks.push(rem); break; }
+    let i = rem.lastIndexOf('. ', max);
+    if (i===-1) i = rem.lastIndexOf('! ', max);
+    if (i===-1) i = rem.lastIndexOf('? ', max);
+    if (i===-1) i = rem.lastIndexOf('; ', max);
+    if (i===-1) i = rem.lastIndexOf(', ', max);
+    if (i===-1) i = rem.lastIndexOf(' ', max);
+    if (i===-1) i = max;
+    const c = rem.substring(0, i+1).trim();
+    if (c) chunks.push(c);
+    rem = rem.substring(i+1).trim();
+  }
+  return chunks;
+}
+
+function getVoiceId(voiceIndex) {
+  const v = voices.find(x => x.index === voiceIndex);
+  return v ? v.id : null;
+}
+
+async function fetchChunkDirect(voiceId, text, pitch, rate) {
+  const body = JSON.stringify({ text, voice: voiceId, pitch: pitch, rate: rate });
+  const headers = {
+    'Content-Type': 'application/json',
+    'Origin': 'https://speechma.com',
+    'Referer': 'https://speechma.com/english',
+  };
+  const r = await fetch(SPEECHMA, { method: 'POST', headers, body });
+  if (!r.ok) throw new Error('direct:' + r.status);
+  const blob = await r.blob();
+  if (blob.size < 100) throw new Error('direct:tiny');
+  return blob;
+}
+
+async function fetchChunkProxy(voiceIndex, text, pitch, rate) {
+  const r = await fetch(BASE + '/api/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ voiceIndex, text, pitch, rate }),
+  });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'HTTP ' + r.status); }
+  return r.blob();
+}
+
+async function parallelFetch(chunks, voiceIndex, pitch, rate, onDone) {
+  const pips = document.getElementById('chunk-grid').children;
+  const voiceId = getVoiceId(voiceIndex);
+  for (let i = 0; i < pips.length; i++) pips[i].className = 'chunk-pip active';
+
+  const promises = chunks.map(async (text, idx) => {
+    try {
+      let blob;
+      try { blob = await fetchChunkDirect(voiceId, text, pitch, rate); }
+      catch(e) { blob = await fetchChunkProxy(voiceIndex, text, pitch, rate); }
+      if (pips[idx]) pips[idx].className = 'chunk-pip done';
+      onDone();
+      return { idx, blob };
+    } catch(err) {
+      if (pips[idx]) pips[idx].className = 'chunk-pip error';
+      throw new Error('Chunk ' + (idx + 1) + ' failed: ' + err.message);
+    }
+  });
+
+  const settled = await Promise.allSettled(promises);
+  const results = new Array(chunks.length);
+  const errors = [];
+  settled.forEach(s => {
+    if (s.status === 'fulfilled') results[s.value.idx] = s.value.blob;
+    else errors.push(s.reason?.message || 'unknown');
+  });
+  if (errors.length === chunks.length) throw new Error(errors[0]);
+  results.forEach((r, i) => { if (!r) results[i] = new Blob([], { type: 'audio/mpeg' }); });
+  return results;
+}
+
+async function generate() {
+  const text = document.getElementById('text-input').value.trim();
+  if (!text) { showResToast('Please enter some text.', 'err'); showTop('Please enter some text', 'err'); return; }
+  if (!selectedVoice) { showResToast('Please select a voice first.', 'err'); showTop('Please select a voice', 'err'); return; }
+
+  const chunks = splitText(text, MAX_CHUNK);
+  const btn = document.getElementById('gen-btn');
+  const pw = document.getElementById('prog-wrap');
+  const pf = document.getElementById('prog-fill');
+  const pt = document.getElementById('prog-txt');
+  const rw = document.getElementById('res-wrap');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin" style="width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff"></span> Processing...';
+  pw.classList.add('show'); rw.classList.remove('show'); hideResToast();
+  if (audioURL) { URL.revokeObjectURL(audioURL); audioURL = null; }
+
+  document.getElementById('chunk-grid').innerHTML =
+    chunks.map(()=>'<div class="chunk-pip"></div>').join('');
+
+  let done = 0;
+  const t0 = Date.now();
+
+  const updateProgress = () => {
+    done++;
+    const pct = Math.round((done / chunks.length) * 92);
+    pf.style.width = pct + '%';
+    pt.textContent = chunks.length > 1
+      ? done + '/' + chunks.length + ' chunks done (' + pct + '%)'
+      : 'Generating...';
+  };
+
+  try {
+    pt.textContent = '⚡ Firing all ' + chunks.length + ' chunk(s) simultaneously...';
+    pf.style.width = '3%';
+
+    const blobs = await parallelFetch(chunks, selectedVoice.index, pitchValue, rateValue, updateProgress);
+
+    pf.style.width = '97%';
+    pt.textContent = 'Merging in browser...';
+
+    const merged = new Blob(blobs, { type: 'audio/mpeg' });
+    audioURL = URL.createObjectURL(merged);
+
+    pf.style.width = '100%';
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    pt.textContent = '✓ Done in ' + elapsed + 's';
+
+    document.getElementById('audio-player').src = audioURL;
+    const dl = document.getElementById('dl-btn');
+    dl.href = audioURL;
+    dl.download = selectedVoice.name.replace(/\s+/g,'_') + '_speech.mp3';
+
+    setTimeout(() => {
+      pw.classList.remove('show');
+      rw.classList.add('show');
+      showResToast('✓ Generated in ' + elapsed + 's — ' + chunks.length + ' chunk(s) (Pitch: ' + pitchValue + ', Speed: ' + rateValue + ')', 'ok');
+      showTop('Generated in '+elapsed+'s','ok');
+    }, 400);
+
+  } catch(e) {
+    pw.classList.remove('show');
+    rw.classList.add('show');
+    showResToast('Error: ' + e.message, 'err');
+    showTop('Error: '+e.message,'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Generate Speech';
+  }
+}
+
+function showResToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'res-toast ' + type; t.style.display = 'block';
+  setTimeout(() => { if (t.textContent===msg) t.style.display='none'; }, 5000);
+}
+function hideResToast() { document.getElementById('toast').style.display = 'none'; }
+
+/* ── API docs helpers ── */
+document.getElementById('api-base-url').textContent = BASE;
+['voices-curl','tts-curl'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.innerHTML = el.innerHTML.replace(/__BASE__/g, BASE);
+});
+function copyBaseUrl(btn){
+  navigator.clipboard.writeText(BASE).then(()=>{
+    const o=btn.textContent; btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent=o,1400);
+  });
+}
+function copyCode(btn){
+  const wrap=btn.closest('.code-wrap');
+  const pre=wrap && wrap.querySelector('.code-body');
+  if(!pre) return;
+  navigator.clipboard.writeText(pre.innerText).then(()=>{
+    const o=btn.textContent; btn.textContent='Copied!'; btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},1400);
+  });
+}
+
+loadVoices();
+</script>
+<!-- AHM7 x Makki channel popup widget -->
+<style>
+#chw-launcher{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));right:16px;z-index:9997;width:56px;height:56px;border-radius:50%;background:#e0263c;border:2.5px solid #141210;box-shadow:5px 5px 0 #141210;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.4rem;transition:.15s;}
+#chw-launcher:hover{transform:translateY(-2px);}
+#chw-launcher.chw-bounce{animation:chw-bounce 1.6s ease infinite;}
+@keyframes chw-bounce{0%,100%{transform:translateY(0);}20%{transform:translateY(-12px);}40%{transform:translateY(0);}55%{transform:translateY(-6px);}70%{transform:translateY(0);}}
+#chw-popup{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0px));right:16px;z-index:9998;width:250px;background:#fffdf7;border:2.5px solid #141210;border-radius:14px;box-shadow:8px 8px 0 #141210;overflow:hidden;transform:translateY(20px) scale(.96);opacity:0;pointer-events:none;transition:.25s ease;font-family:'DM Sans',Arial,sans-serif;}
+#chw-popup.chw-show{transform:translateY(0) scale(1);opacity:1;pointer-events:auto;}
+#chw-popup .chw-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#e0263c;color:#fff;}
+#chw-popup .chw-hd-t{font-weight:800;font-size:.78rem;}
+#chw-popup .chw-close{background:none;border:none;color:#fff;font-size:1rem;cursor:pointer;line-height:1;padding:2px 4px;}
+#chw-popup .chw-body{padding:10px;display:flex;flex-direction:column;gap:8px;}
+#chw-popup .chw-link{display:flex;align-items:center;gap:10px;text-decoration:none;color:#1b1712;padding:8px;border-radius:9px;border:1.5px solid #141210;transition:.12s;}
+#chw-popup .chw-link:hover{background:rgba(224,38,60,.1);}
+#chw-popup .chw-av{width:32px;height:32px;border-radius:8px;background:#e0263c;border:2px solid #141210;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.78rem;color:#fff;flex-shrink:0;}
+#chw-popup .chw-t{font-weight:700;font-size:.78rem;}
+#chw-popup .chw-s{font-size:.6rem;color:#8a8168;}
+</style>
+<div id="chw-launcher" class="chw-bounce" onclick="chwToggle()" title="Join our channels">&#128172;</div>
+<div id="chw-popup">
+  <div class="chw-hd">
+    <span class="chw-hd-t">Join AHM7 x Makki</span>
+    <button class="chw-close" onclick="chwToggle(false)">&times;</button>
+  </div>
+  <div class="chw-body">
+    <a class="chw-link" href="https://whatsapp.com/channel/0029Vb901QrFy724Izy9Wn0m" target="_blank" rel="noopener">
+      <div class="chw-av">MM</div>
+      <div><div class="chw-t">Muhammad Makki</div><div class="chw-s">WhatsApp Channel</div></div>
+    </a>
+    <a class="chw-link" href="https://www.whatsapp.com/channel/0029VaOqbIr2P59sgcIri51d" target="_blank" rel="noopener">
+      <div class="chw-av">AT</div>
+      <div><div class="chw-t">Ahm7Tech</div><div class="chw-s">Main WhatsApp Channel</div></div>
+    </a>
+  </div>
+</div>
+<script>
+function chwToggle(force){
+  var el=document.getElementById('chw-popup');
+  var launcher=document.getElementById('chw-launcher');
+  var show = typeof force === 'boolean' ? force : !el.classList.contains('chw-show');
+  el.classList.toggle('chw-show', show);
+  if(launcher) launcher.classList.toggle('chw-bounce', !show);
+}
+setTimeout(function(){ chwToggle(true); }, 1500);
+</script>
+<!-- /AHM7 x Makki channel popup widget -->
+</body>
+</html>
